@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voxturn — knows when you're done talking</title>
+<meta name="description" content="voxturn: an open audio turn-taking model for voice agents. Answers several turn-taking questions in one forward pass, in 8 ms.">
+<meta property="og:title" content="voxturn — knows when you're done talking">
+<meta property="og:description" content="Open turn-taking model for voice agents: fewer interruptions, faster replies, 14 languages, 8 ms per decision.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2322d3ee%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a78bfa%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2212%22 fill=%22url(%23g)%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="#top"><span class="dot"></span>voxturn</a>
+  <nav>
+    <a href="#demo">Demo</a><a href="#how">How it works</a><a href="#bench">Benchmark</a><a href="#use">Use it</a>
+    <a class="pill" href="https://huggingface.co/AustinXiao/voxturn-v1" target="_blank" rel="noopener">Hugging Face ↗</a>
+  </nav>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="glow"></div>
+  <p class="eyebrow">Open turn-taking model for voice agents</p>
+  <h1>Knows when you're<br><span class="grad">done talking.</span></h1>
+  <p class="lede">voxturn listens to the last 8&nbsp;seconds of a conversation and answers the questions a voice agent
+    actually has — <em>finished?</em> <em>about to go on?</em> <em>just a cough?</em> — in a single forward pass.</p>
+  <div class="cta">
+    <a class="btn primary" href="#demo">▶ Hear the difference</a>
+    <a class="btn" href="https://huggingface.co/AustinXiao/voxturn-v1" target="_blank" rel="noopener">Get the model</a>
+  </div>
+  <div class="stats">
+    <div class="stat"><b data-count="11.5" data-suffix="%">11.5%</b><span>false cut-offs at a 300&nbsp;ms budget<br>English eot-bench</span></div>
+    <div class="stat"><b data-count="19.9" data-suffix="%">19.9%</b><span>14-language mean<br>best among open models</span></div>
+    <div class="stat"><b data-count="8.3" data-suffix=" ms">8.3 ms</b><span>per decision<br>on one GPU</span></div>
+    <div class="stat"><b data-count="2.7" data-suffix="×">2.7×</b><span>fewer turns cut off<br>than Pipecat's default</span></div>
+  </div>
+</section>
+
+<section class="section film">
+  <video controls preload="none" poster="poster.jpg" playsinline>
+    <source src="voxturn.mp4" type="video/mp4">
+  </video>
+</section>
+
+<section id="demo" class="section">
+  <div class="section-head">
+    <p class="eyebrow">Live replay</p>
+    <h2>Same framework. Same VAD. <span class="grad">Different turn model.</span></h2>
+    <p class="sub">Real user turns from eot-bench, streamed through Pipecat's Silero VAD — once with Pipecat's default
+      Smart Turn v3, once with voxturn. Press play and watch who jumps in too early.</p>
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="player">
+    <div class="convo">
+      <div class="bubble agent" id="agentLine"><span class="who">Agent</span><span id="agentText"></span></div>
+      <div class="bubble user"><span class="who">User</span><span id="caption" class="caption"></span></div>
+    </div>
+
+    <div class="timeline-wrap">
+      <canvas id="timeline" aria-label="Waveform, pauses and end-of-turn probabilities over time"></canvas>
+      <div class="legend">
+        <span><i class="sw vox"></i>voxturn P(done)</span>
+        <span><i class="sw st"></i>Smart Turn v3 P(done)</span>
+        <span><i class="sw hold"></i>mid-turn pause</span>
+        <span><i class="sw end"></i>user finished</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="play" class="play" aria-label="Play">▶</button>
+      <div class="time"><span id="tnow">0.0</span> s</div>
+      <label class="toggle"><input type="checkbox" id="cues" checked> sound cue when an agent would reply</label>
+    </div>
+
+    <div class="lanes">
+      <div class="lane" id="laneST">
+        <div class="lane-name"><i class="sw st"></i>Pipecat + Smart Turn v3 <small>default</small></div>
+        <div class="lane-status" id="statusST">listening…</div>
+      </div>
+      <div class="lane" id="laneVX">
+        <div class="lane-name"><i class="sw vox"></i>Pipecat + voxturn</div>
+        <div class="lane-status" id="statusVX">listening…</div>
+      </div>
+    </div>
+
+    <div class="multi">
+      <p class="multi-title">The same forward pass also answers <small>(voxturn, at the playhead)</small></p>
+      <div class="qgrid" id="qgrid"></div>
+    </div>
+    <p class="fine" id="scanNote"></p>
+  </div>
+</section>
+
+<section id="how" class="section">
+  <div class="section-head">
+    <p class="eyebrow">How it works</p>
+    <h2>A speech LLM that <span class="grad">doesn't talk</span> — it decides.</h2>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-num">01</div>
+      <h3>Questions, not labels</h3>
+      <p>Every decision is a multiple-choice question for Qwen3-ASR-0.6B. No text is generated: a tiny head scores the
+        hidden state of each option, and a softmax gives calibrated probabilities.</p>
+      <div class="qlist"><code>eot</code><code>resume</code><code>state4</code><code>intent</code><code>invalid</code></div>
+    </div>
+    <div class="card">
+      <div class="card-num">02</div>
+      <h3>One pass, many answers</h3>
+      <p>Questions sit after a shared audio prefix, each in its own block of the attention mask — so one pass equals
+        asking them one by one. Four questions: <b>9.0&nbsp;ms</b> instead of <b>33.2&nbsp;ms</b>.</p>
+      <svg class="mask" viewBox="0 0 120 120" aria-hidden="true">
+        <defs><linearGradient id="mg" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
+        <g id="maskcells"></g>
+      </svg>
+    </div>
+    <div class="card">
+      <div class="card-num">03</div>
+      <h3>Learned from real pauses</h3>
+      <p>Real phone calls and face-to-face talk, with the decision time drawn anywhere inside each pause. voxturn grows
+        more certain as a silence goes on — so we keep asking every 250&nbsp;ms and reply the moment it's sure.</p>
+      <div class="mini-curve"><svg viewBox="0 0 200 60" aria-hidden="true"><path d="M0,55 C40,54 60,50 80,38 S120,10 200,6" /></svg></div>
+    </div>
+  </div>
+</section>
+
+<section id="bench" class="section">
+  <div class="section-head">
+    <p class="eyebrow">eot-bench</p>
+    <h2>Commercial-grade in English. <span class="grad">Best open model in 14 languages.</span></h2>
+    <p class="sub">False cut-offs (the agent replies while the user is only pausing) at each mean-latency budget.
+      Lower is better. Hover the chart.</p>
+  </div>
+  <div class="bench-grid">
+    <div class="panel"><h4>English: false cut-offs vs latency budget</h4><svg id="curve" class="chart"></svg></div>
+    <div class="panel"><h4>Every language, 300&nbsp;ms budget (open models)</h4><div id="langs" class="langs"></div></div>
+  </div>
+  <div class="frameworks">
+    <div class="fw"><span class="fw-name">Pipecat</span><span class="fw-bar"><i style="--w:45.3%" class="st"></i></span><b>45.3%</b><span class="fw-bar"><i style="--w:16.7%" class="vox"></i></span><b class="v">16.7%</b><small>turns cut off · Smart Turn v3 vs voxturn</small></div>
+    <div class="fw"><span class="fw-name">LiveKit</span><span class="fw-bar"><i style="--w:18%" class="st"></i></span><b>18.0%</b><span class="fw-bar"><i style="--w:9.3%" class="vox"></i></span><b class="v">9.3%</b><small>turns cut off · local v1-mini vs voxturn</small></div>
+  </div>
+</section>
+
+<section id="use" class="section">
+  <div class="section-head">
+    <p class="eyebrow">Drop it in</p>
+    <h2>Three lines to <span class="grad">stop interrupting people.</span></h2>
+  </div>
+  <div class="code">
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-tab="py">Python</button><button class="tab" data-tab="pipecat">Pipecat</button><button class="tab" data-tab="livekit">LiveKit</button>
+      <button class="copy" id="copy">Copy</button>
+    </div>
+<pre data-tab="py" class="on"><code>from huggingface_hub import snapshot_download
+import sys; sys.path.insert(0, snapshot_download("AustinXiao/voxturn-v1"))
+from voxturn import VoxTurn
+
+model = VoxTurn.from_pretrained("AustinXiao/voxturn-v1")
+model.predict(audio, sample_rate=16000, questions=["eot", "resume", "invalid"])
+# {'eot': {'yes': 0.93, 'no': 0.07}, 'resume': {...}, 'invalid': {...}}</code></pre>
+<pre data-tab="pipecat"><code>from pipecat_voxturn import VoxTurnAnalyzer
+from pipecat.turns.user_stop import TurnAnalyzerUserTurnStopStrategy
+from pipecat.turns.user_turn_strategies import UserTurnStrategies
+
+strategies = UserTurnStrategies(stop=[TurnAnalyzerUserTurnStopStrategy(turn_analyzer=VoxTurnAnalyzer())])</code></pre>
+<pre data-tab="livekit"><code>from livekit_voxturn import VoxTurnDetector
+from livekit.agents import AgentSession
+from livekit.plugins import silero
+
+session = AgentSession(vad=silero.VAD.load(min_silence_duration=0.3),
+                       turn_handling={"turn_detection": VoxTurnDetector()})</code></pre>
+  </div>
+</section>
+</main>
+
+<footer>
+  <p><b>voxturn v1</b> · weights and code under CC BY-NC 4.0 ·
+    <a href="https://huggingface.co/AustinXiao/voxturn-v1" target="_blank" rel="noopener">huggingface.co/AustinXiao/voxturn-v1</a></p>
+  <p class="fine">Demo audio, words and pause labels: <a href="https://huggingface.co/datasets/livekit/eot-bench-data" target="_blank" rel="noopener">LiveKit eot-bench</a> (CC BY 4.0).
+    Baseline numbers: official eot-bench results. Framework numbers: 150 English eot-bench turns replayed through each framework's VAD and endpointing.</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
