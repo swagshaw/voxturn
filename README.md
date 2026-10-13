@@ -7,7 +7,7 @@
 **Knows when you're done talking.** An open turn-taking model for voice agents.
 
 [![Live demo](https://img.shields.io/badge/demo-live-22d3ee?style=for-the-badge)](https://swagshaw.github.io/voxturn/)
-[![Model on Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20model-voxturn--v1-a78bfa?style=for-the-badge)](https://huggingface.co/AustinXiao/voxturn-v1)
+[![Model on Hugging Face](https://img.shields.io/badge/model-voxturn--v1-a78bfa?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/AustinXiao/voxturn-v1)
 [![Pipecat](https://img.shields.io/badge/Pipecat-plugin-fb923c?style=for-the-badge)](https://huggingface.co/AustinXiao/voxturn-v1#use-with-pipecat)
 [![LiveKit](https://img.shields.io/badge/LiveKit-plugin-34d399?style=for-the-badge)](https://huggingface.co/AustinXiao/voxturn-v1#use-with-livekit-agents)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-lightgrey?style=for-the-badge)](https://creativecommons.org/licenses/by-nc/4.0/)
@@ -37,13 +37,11 @@ the questions an agent actually has, **all in one forward pass**:
 
 ## Highlights
 
-| | |
-|---|---|
-| 🎯 **Accurate** | 11.5% false cut-offs at a 300 ms latency budget on English [eot-bench](https://huggingface.co/datasets/livekit/eot-bench-data), ahead of the commercial Baton (12.3%) and Deepgram Flux (12.9%) |
-| 🌍 **Multilingual** | 19.9% mean over 14 languages, the best among open models (LiveKit v1-mini 28.4%, Smart Turn v3.2 39.7%) |
-| ⚡ **Fast** | 8.3 ms per decision on one GPU; 4 questions in one pass take 9.0 ms instead of 33.2 ms |
-| 🔌 **Drop-in** | plugins for Pipecat (turns cut off: 45.3% → 16.7%) and LiveKit Agents (18.0% → 9.3%, with lower latency) |
-| 🪶 **Small** | one 0.8B model (Qwen3-ASR-0.6B backbone), 1.9 GB of GPU memory; also runs on CPU |
+- 🎯 **Accurate**: 11.5% false cut-offs at a 300 ms latency budget on English [eot-bench](https://huggingface.co/datasets/livekit/eot-bench-data), ahead of the commercial Baton (12.3%) and Deepgram Flux (12.9%).
+- 🌍 **Multilingual**: 19.9% mean over 14 languages, the best among open models (LiveKit v1-mini 28.4%, Smart Turn v3.2 39.7%).
+- ⚡ **Fast**: 8.3 ms per decision on one GPU; 4 questions in one pass take 9.0 ms instead of 33.2 ms.
+- 🔌 **Drop-in**: plugins for Pipecat (turns cut off: 45.3% → 16.7%) and LiveKit Agents (18.0% → 9.3%, with lower latency).
+- 🪶 **Small**: one 0.8B model (Qwen3-ASR-0.6B backbone), 1.9 GB of GPU memory; also runs on CPU.
 
 ## Quick start
 
