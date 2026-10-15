@@ -17,8 +17,8 @@
 <header class="nav">
   <a class="brand" href="#top"><span class="dot"></span>voxturn</a>
   <nav>
-    <a href="#demo">Demo</a><a href="#how">How it works</a><a href="#bench">Benchmark</a><a href="#use">Use it</a>
-    <a class="pill" href="https://huggingface.co/AustinXiao/voxturn-v1" target="_blank" rel="noopener">Hugging Face ↗</a>
+    <a href="#demo">Demo</a><a href="#how">How it works</a><a href="#bench">Benchmark</a><a href="#use">Use it</a><a href="tech_report.pdf" target="_blank" rel="noopener">Tech report</a>
+    <a class="pill" href="https://huggingface.co/AustinXiao/voxturn" target="_blank" rel="noopener">Hugging Face ↗</a>
   </nav>
 </header>
 
@@ -31,7 +31,8 @@
     actually has — <em>finished?</em> <em>about to go on?</em> <em>just a cough?</em> — in a single forward pass.</p>
   <div class="cta">
     <a class="btn primary" href="#demo">▶ Hear the difference</a>
-    <a class="btn" href="https://huggingface.co/AustinXiao/voxturn-v1" target="_blank" rel="noopener">Get the model</a>
+    <a class="btn" href="https://huggingface.co/AustinXiao/voxturn" target="_blank" rel="noopener">Get the model</a>
+    <a class="btn" href="tech_report.pdf" target="_blank" rel="noopener">Read the tech report</a>
   </div>
   <div class="stats">
     <div class="stat"><b data-count="11.5" data-suffix="%">11.5%</b><span>false cut-offs at a 300&nbsp;ms budget<br>English eot-bench</span></div>
@@ -159,10 +160,10 @@
       <button class="copy" id="copy">Copy</button>
     </div>
 <pre data-tab="py" class="on"><code>from huggingface_hub import snapshot_download
-import sys; sys.path.insert(0, snapshot_download("AustinXiao/voxturn-v1"))
+import sys; sys.path.insert(0, snapshot_download("AustinXiao/voxturn"))
 from voxturn import VoxTurn
 
-model = VoxTurn.from_pretrained("AustinXiao/voxturn-v1")
+model = VoxTurn.from_pretrained("AustinXiao/voxturn")
 model.predict(audio, sample_rate=16000, questions=["eot", "resume", "invalid"])
 # {'eot': {'yes': 0.93, 'no': 0.07}, 'resume': {...}, 'invalid': {...}}</code></pre>
 <pre data-tab="pipecat"><code>from pipecat_voxturn import VoxTurnAnalyzer
@@ -182,7 +183,8 @@ session = AgentSession(vad=silero.VAD.load(min_silence_duration=0.3),
 
 <footer>
   <p><b>voxturn v1</b> · weights and code under CC BY-NC 4.0 ·
-    <a href="https://huggingface.co/AustinXiao/voxturn-v1" target="_blank" rel="noopener">huggingface.co/AustinXiao/voxturn-v1</a></p>
+    <a href="https://huggingface.co/AustinXiao/voxturn" target="_blank" rel="noopener">huggingface.co/AustinXiao/voxturn</a> ·
+    <a href="tech_report.pdf" target="_blank" rel="noopener">technical report (PDF)</a></p>
   <p class="fine">Demo audio, words and pause labels: <a href="https://huggingface.co/datasets/livekit/eot-bench-data" target="_blank" rel="noopener">LiveKit eot-bench</a> (CC BY 4.0).
     Baseline numbers: official eot-bench results. Framework numbers: 150 English eot-bench turns replayed through each framework's VAD and endpointing.</p>
 </footer>

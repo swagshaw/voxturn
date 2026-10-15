@@ -8,12 +8,13 @@
 
 [![Live demo](https://img.shields.io/badge/demo-live-22d3ee?style=for-the-badge)](https://swagshaw.github.io/voxturn/)
 [![TurnBench](https://img.shields.io/badge/TurnBench-EOT%20%235%20%C2%B7%20INT%20%236-f472b6?style=for-the-badge)](https://turnbench.sesame.com/models/voxturn)
+[![Tech report](https://img.shields.io/badge/tech%20report-PDF-ef4444?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](tech_report.pdf)
 [![Model on Hugging Face](https://img.shields.io/badge/model-voxturn-a78bfa?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/AustinXiao/voxturn)
 [![Pipecat](https://img.shields.io/badge/Pipecat-plugin-fb923c?style=for-the-badge)](https://huggingface.co/AustinXiao/voxturn#use-with-pipecat)
 [![LiveKit](https://img.shields.io/badge/LiveKit-plugin-34d399?style=for-the-badge)](https://huggingface.co/AustinXiao/voxturn#use-with-livekit-agents)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-lightgrey?style=for-the-badge)](https://creativecommons.org/licenses/by-nc/4.0/)
 
-**[▶ Try the interactive demo](https://swagshaw.github.io/voxturn/)** · **[Get the model](https://huggingface.co/AustinXiao/voxturn)**
+**[▶ Try the interactive demo](https://swagshaw.github.io/voxturn/)** · **[Get the model](https://huggingface.co/AustinXiao/voxturn)** · **[Read the tech report](tech_report.pdf)**
 
 </div>
 
@@ -101,7 +102,7 @@ session = AgentSession(vad=silero.VAD.load(min_silence_duration=0.3),
 | **voxturn v1 (0.8B)** | **yes** | **11.5%** | **6.0%** | **669 ms** |
 | JoinIn AI Baton | no | 12.3% | 4.8% | 577 ms |
 | Deepgram Flux | no | 12.9% | 9.9% | 1151 ms |
-| LiveKit v1-mini | yes | 27.8% | 12.1% | 1070 ms |
+| LiveKit v1-mini | yes | 27.8% | 12.1% | 1071 ms |
 | Smart Turn v3.2 | yes | 35.2% | 14.8% | 1051 ms |
 
 **In voice-agent frameworks** (150 English eot-bench turns replayed through each framework's VAD and endpointing; a
@@ -124,12 +125,13 @@ turn is cut off if the agent replies in any of its mid-turn pauses)
 voxturn's answers on each speaker's channel plus a two-channel decision policy tuned on the TurnBench dev set; no
 TurnBench training data was used.
 
-Per-language results, speed and more details are on the [model card](https://huggingface.co/AustinXiao/voxturn).
+Per-language results, ablations, training data and more details are in the [technical report](tech_report.pdf)
+and on the [model card](https://huggingface.co/AustinXiao/voxturn).
 
 ## About this repository
 
-This repository hosts the [demo site](https://swagshaw.github.io/voxturn/) (GitHub Pages, plain HTML/CSS/JS, no
-build step). Everything on it was computed offline: real eot-bench user turns streamed through Pipecat's Silero VAD,
+This repository hosts the [technical report](tech_report.pdf) and the [demo site](https://swagshaw.github.io/voxturn/)
+(GitHub Pages, plain HTML/CSS/JS, no build step). Everything on it was computed offline: real eot-bench user turns streamed through Pipecat's Silero VAD,
 once with Pipecat's default Smart Turn v3 and once with voxturn, plus both models' P(end of turn) every 100 ms. The
 model weights, inference code and plugins live on [Hugging Face](https://huggingface.co/AustinXiao/voxturn).
 
@@ -140,10 +142,12 @@ pause labels: [LiveKit eot-bench](https://huggingface.co/datasets/livekit/eot-be
 are the official eot-bench results (turn-1's are from its model card) and the official TurnBench leaderboard.
 
 ```bibtex
-@misc{voxturn2026,
-  title  = {voxturn: an open multilingual turn-taking model answering several questions in one pass},
-  author = {Xiao, Yang},
-  year   = {2026},
-  url    = {https://huggingface.co/AustinXiao/voxturn}
+@techreport{voxturn2026,
+  title       = {{VoxTurn}: Answering Several Turn-Taking Questions in One Pass with One Model},
+  author      = {Xiao, Yang},
+  institution = {The University of Melbourne},
+  type        = {Technical Report},
+  year        = {2026},
+  url         = {https://github.com/swagshaw/voxturn/blob/main/tech_report.pdf}
 }
 ```
