@@ -17,7 +17,7 @@
 <header class="nav">
   <a class="brand" href="#top"><span class="dot"></span>voxturn</a>
   <nav>
-    <a href="#demo">Demo</a><a href="#how">How it works</a><a href="#bench">Benchmark</a><a href="#use">Use it</a><a href="tech_report.pdf" target="_blank" rel="noopener">Tech report</a>
+    <a href="#demo">Demo</a><a href="#how">How it works</a><a href="#bench">Benchmark</a><a href="#turnbench">TurnBench</a><a href="#use">Use it</a><a href="tech_report.pdf" target="_blank" rel="noopener">Tech report</a>
     <a class="pill" href="https://huggingface.co/AustinXiao/voxturn" target="_blank" rel="noopener">Hugging Face ↗</a>
   </nav>
 </header>
@@ -149,6 +149,35 @@
   </div>
 </section>
 
+<section id="turnbench" class="section">
+  <div class="section-head">
+    <p class="eyebrow">TurnBench</p>
+    <h2>Two-party conversations. <span class="grad">Top 5, zero-shot.</span></h2>
+    <p class="sub"><a href="https://turnbench.sesame.com/models/voxturn" target="_blank" rel="noopener">TurnBench</a>
+      (Sesame, IEEE SLT 2026) scores end-of-turn and interruption detection in 30&nbsp;h of two-party English
+      conversations, one channel per speaker. Test labels are held out and scored by the organisers. voxturn never saw
+      a TurnBench training example.</p>
+  </div>
+  <div class="stats tb-stats">
+    <div class="stat"><b>#5<small> / 24</small></b><span>end-of-turn detection<br>recall 0.924</span></div>
+    <div class="stat"><b>#6<small> / 23</small></b><span>interruption detection<br>recall 0.951</span></div>
+    <div class="stat"><b>332 ms</b><span>median interruption latency<br>fastest of the top 6</span></div>
+    <div class="stat"><b>0</b><span>TurnBench training examples<br>(zero-shot)</span></div>
+  </div>
+  <div class="seg" role="tablist" aria-label="TurnBench task">
+    <button class="seg-btn on" data-task="eot" role="tab">End of turn</button>
+    <button class="seg-btn" data-task="int" role="tab">Interruption</button>
+  </div>
+  <div class="bench-grid tb-grid">
+    <div class="panel"><h4 id="tbRankTitle">Recall on the test set</h4><div id="tbRank" class="tbrank"></div></div>
+    <div class="panel"><h4>Recall vs median latency <small>· up and to the left is better · hover a point</small></h4><svg id="tbScatter" class="chart"></svg></div>
+  </div>
+  <p class="fine tb-note">Recall at each system's false-positive rate; latency from the gold event. Selected systems from the
+    <a href="https://turnbench.sesame.com/models/voxturn" target="_blank" rel="noopener">official leaderboard</a> (ranks as of
+    October 2026). voxturn runs on each speaker's channel with a two-channel decision policy tuned on the TurnBench dev set.
+    Details in the <a href="tech_report.pdf" target="_blank" rel="noopener">technical report</a>.</p>
+</section>
+
 <section id="use" class="section">
   <div class="section-head">
     <p class="eyebrow">Drop it in</p>
@@ -186,7 +215,7 @@ session = AgentSession(vad=silero.VAD.load(min_silence_duration=0.3),
     <a href="https://huggingface.co/AustinXiao/voxturn" target="_blank" rel="noopener">huggingface.co/AustinXiao/voxturn</a> ·
     <a href="tech_report.pdf" target="_blank" rel="noopener">technical report (PDF)</a></p>
   <p class="fine">Demo audio, words and pause labels: <a href="https://huggingface.co/datasets/livekit/eot-bench-data" target="_blank" rel="noopener">LiveKit eot-bench</a> (CC BY 4.0).
-    Baseline numbers: official eot-bench results. Framework numbers: 150 English eot-bench turns replayed through each framework's VAD and endpointing.</p>
+    Baseline numbers: official eot-bench results and the official TurnBench leaderboard. Framework numbers: 150 English eot-bench turns replayed through each framework's VAD and endpointing.</p>
 </footer>
 <script src="app.js"></script>
 </body>

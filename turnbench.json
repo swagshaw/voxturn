@@ -1,0 +1,14 @@
+{
+  "source": "TurnBench test set, scored by the organisers; ranks among all submissions as of October 2026 (https://turnbench.sesame.com/models/voxturn)",
+  "ranks": {"eot": {"rank": 5, "of": 24}, "int": {"rank": 6, "of": 23}},
+  "systems": [
+    {"name": "voxturn",         "open": true,  "eot": {"recall": 0.924, "fpr": 0.076, "ms": 557},  "int": {"recall": 0.951, "fpr": 0.112, "ms": 332}},
+    {"name": "turn-1-mini",     "open": true,  "eot": {"recall": 0.975, "fpr": 0.075, "ms": 595},  "int": {"recall": 0.973, "fpr": 0.048, "ms": 551}},
+    {"name": "Vox Maru v1",     "open": false, "eot": {"recall": 0.960, "fpr": 0.072, "ms": 548},  "int": {"recall": 0.964, "fpr": 0.085, "ms": 368}},
+    {"name": "Ooma",            "open": false, "eot": {"recall": 0.951, "fpr": 0.082, "ms": 388},  "int": {"recall": 0.968, "fpr": 0.076, "ms": 567}},
+    {"name": "Tavus Sparrow-2", "open": false, "eot": {"recall": 0.930, "fpr": 0.084, "ms": 615},  "int": {"recall": 0.958, "fpr": 0.126, "ms": 959}},
+    {"name": "SPX-AI MicroCF",  "open": false, "eot": {"recall": 0.906, "fpr": 0.079, "ms": 678},  "int": {"recall": 0.984, "fpr": 0.073, "ms": 747}},
+    {"name": "Voice Activity Projection", "open": true, "eot": {"recall": 0.845, "fpr": 0.055, "ms": 368}, "int": {"recall": 0.945, "fpr": 0.107, "ms": 994}},
+    {"name": "Smart Turn v3",   "open": true,  "eot": {"recall": 0.752, "fpr": 0.047, "ms": 1017}, "int": {"recall": 0.107, "fpr": 0.093, "ms": 159}}
+  ]
+}

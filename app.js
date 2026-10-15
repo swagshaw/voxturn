@@ -1,4 +1,5 @@
-// voxturn demo page: replays precomputed eot-bench turns (examples.json) and benchmark curves (bench.json).
+// voxturn demo page: replays precomputed eot-bench turns (examples.json), benchmark curves (bench.json) and the
+// TurnBench test results (turnbench.json).
 "use strict";
 
 const LANG = { en: "English", zh: "中文", ja: "日本語", es: "Español", fr: "Français", de: "Deutsch" };
@@ -265,6 +266,78 @@ function langChart(b) {
     `<div class="key">${sys.map((s) => `<span><i style="background:${col[s.name]}"></i>${s.name}</span>`).join("")}</div>`;
 }
 
+// ------------------------------------------------------------------ TurnBench
+const TB_COL = { me: C.vox, open: "#94a3b8", closed: "#e5e7eb" };
+const tbColor = (s) => (s.name === "voxturn" ? TB_COL.me : s.open ? TB_COL.open : TB_COL.closed);
+
+function tbRank(tb, task) {
+  const rows = [...tb.systems].sort((a, c) => c[task].recall - a[task].recall);
+  const lo = 0.7, hi = 1.0, w = (r) => Math.max(0, (r - lo) / (hi - lo)) * 100;
+  const rk = tb.ranks[task];
+  $("#tbRankTitle").innerHTML = `${task === "eot" ? "End-of-turn" : "Interruption"} recall, test set ` +
+    `<small>· voxturn #${rk.rank} of ${rk.of} · axis from 0.7</small>`;
+  $("#tbRank").innerHTML = rows.map((s) => {
+    const me = s.name === "voxturn", r = s[task];
+    const bg = me ? `linear-gradient(90deg, ${C.vox}, ${C.vox2})` : tbColor(s);
+    return `<div class="tbrow${me ? " me" : ""}" title="${s.name}: recall ${r.recall.toFixed(3)}, FPR ${r.fpr.toFixed(3)}, ${r.ms} ms">` +
+      `<span class="nm">${s.name}${s.open ? "" : " <small>(closed)</small>"}</span><span class="track"><i style="width:0;background:${bg};opacity:${me ? 1 : 0.55}" data-w="${w(r.recall)}"></i></span>` +
+      `<span class="v">${r.recall.toFixed(3)}</span></div>`;
+  }).join("") + `<div class="key"><span><i style="background:${C.vox}"></i>voxturn</span><span><i style="background:${TB_COL.open}"></i>other open models</span><span><i style="background:${TB_COL.closed}"></i>closed</span></div>`;
+  requestAnimationFrame(() => document.querySelectorAll("#tbRank .track i").forEach((i) => (i.style.width = i.dataset.w + "%")));
+}
+
+function tbScatter(tb, task) {
+  const svg = $("#tbScatter"), W = svg.clientWidth || 600, H = svg.clientHeight || 320;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const y0 = task === "eot" ? 0.72 : 0.92, y1 = 1.0, x0 = 200, x1 = 1100;
+  const L = 44, R = 14, T = 12, B = 30;
+  const X = (ms) => L + ((ms - x0) / (x1 - x0)) * (W - L - R), Y = (v) => T + (1 - (v - y0) / (y1 - y0)) * (H - T - B);
+  let h = `<g class="grid">`;
+  const step = task === "eot" ? 0.05 : 0.02;
+  for (let v = Math.ceil(y0 / step - 1e-9) * step; v <= y1 + 1e-9; v += step) h += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L - 8}" y="${Y(v) + 4}" text-anchor="end">${v.toFixed(2)}</text>`;
+  for (let ms = 200; ms <= 1000; ms += 200) h += `<text x="${X(ms)}" y="${H - 10}" text-anchor="${ms === 200 ? "start" : "middle"}">${ms} ms</text>`;
+  h += `</g>`;
+  const pts = tb.systems.map((s) => ({ s, r: s[task] })).sort((a, c) => (a.s.name === "voxturn") - (c.s.name === "voxturn"));
+  const off = [];
+  pts.forEach(({ s, r }) => {
+    const me = s.name === "voxturn";
+    if (r.recall < y0) { off.push(`${s.name}: recall ${r.recall.toFixed(3)}, ${r.ms} ms`); return; }
+    const cx = X(r.ms), cy = Y(r.recall), right = cx < W - 150;
+    h += `<g class="tbpt" data-tip="${s.name}|${r.recall.toFixed(3)}|${r.fpr.toFixed(3)}|${r.ms}">` +
+      (me ? `<circle cx="${cx}" cy="${cy}" r="14" fill="${C.vox}" opacity=".18"/>` : "") +
+      `<circle cx="${cx}" cy="${cy}" r="${me ? 7 : 5}" fill="${tbColor(s)}" stroke="${C.vox === tbColor(s) ? "#fff" : "#06080d"}" stroke-width="${me ? 2 : 1.5}" opacity="${me ? 1 : 0.8}"/>` +
+      `<circle cx="${cx}" cy="${cy}" r="14" fill="transparent"/>` +
+      (me ? `<text x="${cx}" y="${cy - 16}" text-anchor="middle" style="fill:${C.vox};font-weight:700;font-size:12px">${s.name}</text>`
+          : `<text x="${cx + (right ? 11 : -11)}" y="${cy + 4}" text-anchor="${right ? "start" : "end"}">${s.name}</text>`) + `</g>`;
+  });
+  if (off.length) h += `<text x="${W - R}" y="${H - B - 8}" text-anchor="end" style="font-size:10px">off scale: ${off.join("; ")}</text>`;
+  h += `<g id="tbTip" style="display:none"><rect rx="8" fill="#0b0f17" stroke="#1c2333" width="170" height="64"/><text class="tip" x="10" y="20"></text><text class="tip" x="10" y="37"></text><text class="tip" x="10" y="54"></text></g>`;
+  svg.innerHTML = h;
+  svg.querySelectorAll(".tbpt").forEach((g) => {
+    g.style.cursor = "default";
+    g.onmouseenter = () => {
+      const [n, rec, fpr, ms] = g.dataset.tip.split("|"), c = g.querySelector("circle:not([fill=transparent])");
+      const cx = +c.getAttribute("cx"), cy = +c.getAttribute("cy"), tip = $("#tbTip"), t = tip.querySelectorAll("text");
+      t[0].textContent = n; t[1].textContent = `recall ${rec} · FPR ${fpr}`; t[2].textContent = `median latency ${ms} ms`;
+      const bx = Math.min(Math.max(cx - 85, L), W - R - 170), by = cy > H / 2 ? cy - 80 : cy + 16;
+      tip.setAttribute("transform", `translate(${bx},${by})`); tip.style.display = "";
+    };
+    g.onmouseleave = () => ($("#tbTip").style.display = "none");
+  });
+}
+
+function turnbench(tb) {
+  let task = "eot";
+  const draw = () => { tbRank(tb, task); tbScatter(tb, task); };
+  document.querySelectorAll(".seg-btn").forEach((b) => b.onclick = () => {
+    task = b.dataset.task;
+    document.querySelectorAll(".seg-btn").forEach((x) => x.classList.toggle("on", x === b));
+    draw();
+  });
+  draw();
+  window.addEventListener("resize", () => tbScatter(tb, task));
+}
+
 // ------------------------------------------------------------------ small things
 function maskCells() {
   const n = 12, s = 10, blk = (i) => (i < 6 ? 0 : i < 9 ? 1 : 2);
@@ -302,8 +375,10 @@ function tabs() {
 
 (async function main() {
   maskCells(); countUp(); tabs();
-  const [e, b] = await Promise.all([fetch("examples.json").then((r) => r.json()), fetch("bench.json").then((r) => r.json())]);
+  const [e, b, tb] = await Promise.all([fetch("examples.json").then((r) => r.json()), fetch("bench.json").then((r) => r.json()),
+    fetch("turnbench.json").then((r) => r.json())]);
   data = e;
+  turnbench(tb);
   buildChips(); select(0);
   curveChart(b); langChart(b);
   window.addEventListener("resize", () => curveChart(b));
