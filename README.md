@@ -7,12 +7,13 @@
 **Knows when you're done talking.** An open turn-taking model for voice agents.
 
 [![Live demo](https://img.shields.io/badge/demo-live-22d3ee?style=for-the-badge)](https://swagshaw.github.io/voxturn/)
-[![Model on Hugging Face](https://img.shields.io/badge/model-voxturn--v1-a78bfa?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/AustinXiao/voxturn-v1)
-[![Pipecat](https://img.shields.io/badge/Pipecat-plugin-fb923c?style=for-the-badge)](https://huggingface.co/AustinXiao/voxturn-v1#use-with-pipecat)
-[![LiveKit](https://img.shields.io/badge/LiveKit-plugin-34d399?style=for-the-badge)](https://huggingface.co/AustinXiao/voxturn-v1#use-with-livekit-agents)
+[![TurnBench](https://img.shields.io/badge/TurnBench-EOT%20%235%20%C2%B7%20INT%20%236-f472b6?style=for-the-badge)](https://turnbench.sesame.com/models/voxturn)
+[![Model on Hugging Face](https://img.shields.io/badge/model-voxturn-a78bfa?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/AustinXiao/voxturn)
+[![Pipecat](https://img.shields.io/badge/Pipecat-plugin-fb923c?style=for-the-badge)](https://huggingface.co/AustinXiao/voxturn#use-with-pipecat)
+[![LiveKit](https://img.shields.io/badge/LiveKit-plugin-34d399?style=for-the-badge)](https://huggingface.co/AustinXiao/voxturn#use-with-livekit-agents)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-lightgrey?style=for-the-badge)](https://creativecommons.org/licenses/by-nc/4.0/)
 
-**[▶ Try the interactive demo](https://swagshaw.github.io/voxturn/)** · **[Get the model](https://huggingface.co/AustinXiao/voxturn-v1)**
+**[▶ Try the interactive demo](https://swagshaw.github.io/voxturn/)** · **[Get the model](https://huggingface.co/AustinXiao/voxturn)**
 
 </div>
 
@@ -39,6 +40,7 @@ the questions an agent actually has, **all in one forward pass**:
 
 - 🎯 **Accurate**: 11.5% false cut-offs at a 300 ms latency budget on English [eot-bench](https://huggingface.co/datasets/livekit/eot-bench-data), ahead of the commercial Baton (12.3%) and Deepgram Flux (12.9%).
 - 🌍 **Multilingual**: 19.9% mean over 14 languages, the best among open models (LiveKit v1-mini 28.4%, Smart Turn v3.2 39.7%).
+- 🗣️ **Two-party conversations**: on the [TurnBench](https://turnbench.sesame.com/models/voxturn) test set, without TurnBench training data, #5 of 24 in end-of-turn detection (recall 0.924) and #6 of 23 in interruption detection (recall 0.951), the fastest of that top 6 (332 ms median).
 - ⚡ **Fast**: 8.3 ms per decision on one GPU; 4 questions in one pass take 9.0 ms instead of 33.2 ms.
 - 🔌 **Drop-in**: plugins for Pipecat (turns cut off: 45.3% → 16.7%) and LiveKit Agents (18.0% → 9.3%, with lower latency).
 - 🪶 **Small**: one 0.8B model (Qwen3-ASR-0.6B backbone), 1.9 GB of GPU memory; also runs on CPU.
@@ -52,10 +54,10 @@ pip install "transformers>=5.19" peft safetensors huggingface_hub scipy torch
 ```python
 import sys
 from huggingface_hub import snapshot_download
-sys.path.insert(0, snapshot_download("AustinXiao/voxturn-v1"))
+sys.path.insert(0, snapshot_download("AustinXiao/voxturn"))
 from voxturn import VoxTurn
 
-model = VoxTurn.from_pretrained("AustinXiao/voxturn-v1")      # device="cpu" works too
+model = VoxTurn.from_pretrained("AustinXiao/voxturn")      # device="cpu" works too
 model.predict(audio, sample_rate=16000, questions=["eot", "resume", "invalid"])
 # {'eot': {'yes': 0.93, 'no': 0.07}, 'resume': {'soon': 0.04, 'later': 0.05, 'no': 0.91}, 'invalid': {...}}
 ```
@@ -110,26 +112,38 @@ turn is cut off if the agent replies in any of its mid-turn pauses)
 | Pipecat | 45.3% cut off, 1.32 s mean delay | **16.7% cut off, 0.36 s** |
 | LiveKit (VAD 0.3 s) | 18.0% cut off, 0.73 s | **9.3% cut off, 0.47 s** |
 
-Per-language results, speed and more details are on the [model card](https://huggingface.co/AustinXiao/voxturn-v1).
+**TurnBench** (two-party English conversations, one channel per speaker; held-out test scored by the organisers,
+[leaderboard](https://turnbench.sesame.com/models/voxturn), ranks as of October 2026)
+
+| Model | Open | End-of-turn recall | FP rate | Latency p50 | Interruption recall | FP rate | Latency p50 |
+|---|---|---|---|---|---|---|---|
+| **voxturn** | **yes** | **0.924** (#5 of 24) | 0.076 | 557 ms | **0.951** (#6 of 23) | 0.112 | 332 ms |
+| Voice Activity Projection | yes | 0.845 | 0.055 | 368 ms | 0.945 | 0.107 | 994 ms |
+| Smart Turn v3 | yes | 0.752 | 0.047 | 1017 ms | 0.107 | 0.093 | 159 ms |
+
+voxturn's answers on each speaker's channel plus a two-channel decision policy tuned on the TurnBench dev set; no
+TurnBench training data was used.
+
+Per-language results, speed and more details are on the [model card](https://huggingface.co/AustinXiao/voxturn).
 
 ## About this repository
 
 This repository hosts the [demo site](https://swagshaw.github.io/voxturn/) (GitHub Pages, plain HTML/CSS/JS, no
 build step). Everything on it was computed offline: real eot-bench user turns streamed through Pipecat's Silero VAD,
 once with Pipecat's default Smart Turn v3 and once with voxturn, plus both models' P(end of turn) every 100 ms. The
-model weights, inference code and plugins live on [Hugging Face](https://huggingface.co/AustinXiao/voxturn-v1).
+model weights, inference code and plugins live on [Hugging Face](https://huggingface.co/AustinXiao/voxturn).
 
 ## License and citation
 
 voxturn weights and code: [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Demo audio, word timings and
 pause labels: [LiveKit eot-bench](https://huggingface.co/datasets/livekit/eot-bench-data) (CC BY 4.0). Baseline numbers
-are the official eot-bench results; turn-1's are from its model card.
+are the official eot-bench results (turn-1's are from its model card) and the official TurnBench leaderboard.
 
 ```bibtex
 @misc{voxturn2026,
-  title  = {voxturn v1: an open multilingual turn-taking model answering several questions in one pass},
+  title  = {voxturn: an open multilingual turn-taking model answering several questions in one pass},
   author = {Xiao, Yang},
   year   = {2026},
-  url    = {https://huggingface.co/AustinXiao/voxturn-v1}
+  url    = {https://huggingface.co/AustinXiao/voxturn}
 }
 ```
