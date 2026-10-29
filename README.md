@@ -37,6 +37,20 @@ the questions an agent actually has, **all in one forward pass**:
 <br><sub>Same framework, same VAD, same user. Left: Pipecat's default Smart Turn v3 interrupts mid-sentence. Right: voxturn waits, then replies 0.32 s after the user finishes.</sub>
 </div>
 
+## New: voxturn-personal (preview)
+
+When someone else talks near the microphone, a turn detector that hears "whoever is speaking" waits for them, or
+answers the moment *they* stop. **voxturn-personal** learns the user's voice from the first seconds of the call and
+decides only on the user's turn.
+
+<div align="center">
+<a href="https://swagshaw.github.io/voxturn/personal/"><img src="personal/demo.gif" alt="The same call in Pipecat with someone talking nearby: voxturn v1 versus voxturn-personal" width="100%"></a>
+<br><sub>Same framework, same VAD, a bystander talking nearby. voxturn v1 hears everyone; voxturn-personal follows the user it enrolled at the start of the call.</sub>
+</div>
+
+**[▶ Live replay](https://swagshaw.github.io/voxturn/personal/)** · **[Model (preview)](https://huggingface.co/AustinXiao/voxturn-personal)**
+· English, one user per session, Pipecat plugin; technical report and benchmark with the full release.
+
 ## Highlights
 
 - 🎯 **Accurate**: 11.5% false cut-offs at a 300 ms latency budget on English [eot-bench](https://huggingface.co/datasets/livekit/eot-bench-data), ahead of the commercial Baton (12.3%) and Deepgram Flux (12.9%).
@@ -130,7 +144,8 @@ and on the [model card](https://huggingface.co/AustinXiao/voxturn).
 
 ## About this repository
 
-This repository hosts the [technical report](tech_report.pdf) and the [demo site](https://swagshaw.github.io/voxturn/)
+This repository hosts the [technical report](tech_report.pdf), the [demo site](https://swagshaw.github.io/voxturn/) and
+the [voxturn-personal live replay](https://swagshaw.github.io/voxturn/personal/) (`personal/`)
 (GitHub Pages, plain HTML/CSS/JS, no build step). Everything on it was computed offline: real eot-bench user turns streamed through Pipecat's Silero VAD,
 once with Pipecat's default Smart Turn v3 and once with voxturn, plus both models' P(end of turn) every 100 ms. The
 model weights, inference code and plugins live on [Hugging Face](https://huggingface.co/AustinXiao/voxturn).

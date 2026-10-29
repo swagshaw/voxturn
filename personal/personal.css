@@ -1,0 +1,27 @@
+/* voxturn-personal page: additions to ../style.css */
+:root { --user: #e8ecf4; --bys: #f472b6; --pu: #a78bfa; }
+.sw.user { background: var(--user); } .sw.bys { background: var(--bys); }
+.sw.vad { background: rgba(250, 204, 21, .55); height: 10px; } .sw.pu { background: var(--pu); height: 2px; }
+.enroll { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 14px; border: 1px dashed var(--line);
+  border-radius: 14px; background: var(--bg2); color: var(--muted); font-size: 14px; }
+.enroll b { color: var(--text); }
+.mini { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--card);
+  color: var(--vox); cursor: pointer; font-size: 13px; }
+.mini.on { background: var(--vox); color: #04121a; }
+#timeline { width: 100%; height: 300px; display: block; cursor: pointer; }
+.tracks { display: flex; gap: 4px; flex-wrap: wrap; }
+.track { border: 1px solid var(--line); background: var(--bg2); color: var(--muted); padding: 6px 12px; border-radius: 999px;
+  cursor: pointer; font: 500 13px Inter, sans-serif; }
+.track.on { color: #04121a; background: var(--text); border-color: var(--text); }
+.rtable { max-width: 900px; margin: 0 auto; overflow-x: auto; }
+.rtable table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.rtable th, .rtable td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.rtable th:first-child, .rtable td:first-child { text-align: left; white-space: normal; }
+.rtable th { color: var(--muted); font-weight: 500; font-size: 13px; }
+.rtable td b { color: var(--vox); }
+.foot { max-width: 1120px; margin: 80px auto 0; padding: 32px clamp(16px, 4vw, 32px) 48px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 13px; }
+@media (max-width: 860px) {
+  #timeline { height: 240px; }
+  .toggle { margin-left: 0; }
+}

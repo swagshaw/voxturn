@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voxturn-personal — listens to you, not the room</title>
+<meta name="description" content="voxturn-personal: turn detection that follows your voice, not the room. Live replay in Pipecat against voxturn v1.">
+<meta property="og:title" content="voxturn-personal — listens to you, not the room">
+<meta property="og:description" content="Same framework, same VAD, different turn model: voxturn-personal waits for the user, not for the people around them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2322d3ee%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a78bfa%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2212%22 fill=%22url(%23g)%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../style.css?v=20261015">
+<link rel="stylesheet" href="personal.css?v=20261028">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="../"><span class="dot"></span>voxturn</a>
+  <nav>
+    <a href="#demo">Live replay</a><a href="#how">How it works</a><a href="#results">Results</a><a href="#use">Use it</a>
+    <a href="../">voxturn v1</a>
+    <a class="pill" href="https://huggingface.co/AustinXiao/voxturn-personal" target="_blank" rel="noopener">Hugging Face ↗</a>
+  </nav>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="glow"></div>
+  <p class="eyebrow">voxturn-personal · preview</p>
+  <h1>Listens to <span class="grad">you,</span><br>not the room.</h1>
+  <p class="lede">Turn detectors hear whoever is talking. When someone nearby keeps talking, the agent waits for
+    them — or answers the moment <em>they</em> stop. voxturn-personal learns your voice from the first seconds of the
+    call and decides only on <em>your</em> turn.</p>
+  <div class="cta">
+    <a class="btn primary" href="#demo">▶ Watch the replay</a>
+    <a class="btn" href="https://huggingface.co/AustinXiao/voxturn-personal" target="_blank" rel="noopener">Get the model</a>
+    <a class="btn" href="../">voxturn v1</a>
+  </div>
+  <div class="stats">
+    <div class="stat"><b>54%</b><span>of calls answered within 1&nbsp;s<br>of the caller finishing · v1: 35%</span></div>
+    <div class="stat"><b>29%</b><span>jumped in too early<br>v1: 35%</span></div>
+    <div class="stat"><b>10 s</b><span>of the caller's voice,<br>learned at the call's start</span></div>
+    <div class="stat"><b>11.6%</b><span>eot-bench English, no bystander<br>on par with v1 (11.5%)</span></div>
+  </div>
+</section>
+
+<section id="demo" class="section">
+  <div class="section-head">
+    <p class="eyebrow">Live replay</p>
+    <h2>Same framework. Same VAD. <span class="grad">Different turn model.</span></h2>
+    <p class="sub">A caller talks to an agent while someone else talks nearby. The same call streams through Pipecat's
+      Silero VAD twice — once with voxturn v1, once with voxturn-personal. Press play and watch who waits for the caller.</p>
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="player">
+    <div class="enroll" id="enroll">
+      <button class="mini" id="playOpening" aria-label="Play the call start">▶</button>
+      <div><b>Call start</b> <span id="enrollText"></span></div>
+    </div>
+
+    <div class="timeline-wrap">
+      <canvas id="timeline" aria-label="User and bystander waveforms, VAD, pauses and end-of-turn probabilities over time"></canvas>
+      <div class="legend">
+        <span><i class="sw user"></i>caller</span>
+        <span><i class="sw bys"></i>bystander</span>
+        <span><i class="sw vad"></i>Silero VAD hears speech</span>
+        <span><i class="sw vox"></i>voxturn-personal P(done)</span>
+        <span><i class="sw st"></i>voxturn v1 P(done)</span>
+        <span><i class="sw pu"></i>P(caller is speaking)</span>
+        <span><i class="sw hold"></i>caller pauses</span>
+        <span><i class="sw end"></i>caller finished</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="play" class="play" aria-label="Play">▶</button>
+      <div class="time"><span id="tnow">0.0</span> s</div>
+      <div class="tracks" role="radiogroup" aria-label="What to listen to">
+        <button class="track on" data-track="mix">what the agent hears</button>
+        <button class="track" data-track="user">caller only</button>
+        <button class="track" data-track="bystander">bystander only</button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="cues" checked> sound cue when an agent replies</label>
+    </div>
+
+    <div class="lanes">
+      <div class="lane" id="laneV1">
+        <div class="lane-name"><i class="sw st"></i>Pipecat + Silero VAD + voxturn v1</div>
+        <div class="lane-status" id="statusV1">listening…</div>
+      </div>
+      <div class="lane" id="lanePE">
+        <div class="lane-name"><i class="sw vox"></i>Pipecat + Silero VAD + voxturn-personal</div>
+        <div class="lane-status" id="statusPE">listening…</div>
+      </div>
+    </div>
+    <p class="fine" id="scanNote"></p>
+  </div>
+</section>
+
+<section id="how" class="section">
+  <div class="section-head">
+    <p class="eyebrow">How it works</p>
+    <h2>It knows <span class="grad">whose</span> pause it is.</h2>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-num">01</div>
+      <h3>Your voice, from the call's start</h3>
+      <p>The first <b>10&nbsp;s</b> of speech in the call become the enrollment — a ReDimNet speaker embedding, computed
+        once in 19&nbsp;ms. No sign-up recording needed; one can be given instead.</p>
+    </div>
+    <div class="card">
+      <div class="card-num">02</div>
+      <h3>Four ways to listen for you</h3>
+      <p>The embedding enters voxturn's speech LLM (Qwen3-ASR-1.7B) as prompt tokens, as per-token voice matching, as a
+        target-speaker VAD and inside the audio encoder. Training on <b>counterfactual pairs</b> — same audio, other
+        enrollment, other answer — makes it compare voices instead of guessing "the louder one".</p>
+    </div>
+    <div class="card">
+      <div class="card-num">03</div>
+      <h3>VAD speech isn't always yours</h3>
+      <p>Pipecat's VAD fires on anyone. While it does, the plugin asks the model every <b>200&nbsp;ms</b> whether it is
+        the user speaking; if not, that is the user's silence — so the turn can end while the bystander talks on.</p>
+    </div>
+  </div>
+</section>
+
+<section id="results" class="section">
+  <div class="section-head">
+    <p class="eyebrow">Results</p>
+    <h2>More calls answered <span class="grad">right on time.</span></h2>
+    <p class="sub">80 phone calls with someone talking nearby, each replayed through Pipecat and Silero VAD with
+      either turn model.</p>
+  </div>
+  <div class="rtable">
+    <table>
+      <thead><tr><th>What the agent did</th><th>voxturn v1</th><th>voxturn-personal</th></tr></thead>
+      <tbody>
+        <tr><td>Answered within 1 s of the caller finishing</td><td>35%</td><td><b>54%</b></td></tr>
+        <tr><td>Jumped in before the caller was done</td><td>35%</td><td><b>29%</b></td></tr>
+        <tr><td>Kept the caller waiting more than 1 s</td><td>30%</td><td><b>18%</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="use" class="section">
+  <div class="section-head">
+    <p class="eyebrow">Use it</p>
+    <h2>One analyzer per call. <span class="grad">No sign-up recording.</span></h2>
+  </div>
+  <div class="code">
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-tab="pipecat">Pipecat</button><button class="tab" data-tab="py">Python</button>
+      <button class="copy" id="copy">Copy</button>
+    </div>
+<pre data-tab="pipecat" class="on"><code>from pipecat_voxturn_personal import VoxTurnPersonalAnalyzer
+from pipecat.turns.user_stop import TurnAnalyzerUserTurnStopStrategy
+from pipecat.turns.user_turn_strategies import UserTurnStrategies
+
+analyzer = VoxTurnPersonalAnalyzer()     # captures the user's voice from the call's start
+strategies = UserTurnStrategies(stop=[TurnAnalyzerUserTurnStopStrategy(turn_analyzer=analyzer)])</code></pre>
+<pre data-tab="py"><code>from huggingface_hub import snapshot_download
+import sys; path = snapshot_download("AustinXiao/voxturn-personal"); sys.path.insert(0, path)
+from voxturn_personal import VoxTurnPersonal
+
+model = VoxTurnPersonal.from_pretrained(path)
+enr = model.call_enrollment()                  # once per call
+user = enr.add(chunk, is_speech)               # every chunk, with your VAD's speech flag
+model.predict(last_8s, user, questions=("eot", "target_active"))</code></pre>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <p><b>voxturn-personal</b> (preview) · CC BY-NC 4.0 ·
+    <a href="https://huggingface.co/AustinXiao/voxturn-personal" target="_blank" rel="noopener">huggingface.co/AustinXiao/voxturn-personal</a> ·
+    <a href="../">voxturn v1</a></p>
+  <p class="fine">Demo audio: SpokenWOZ and Seamless Interaction (CC BY-NC 4.0).</p>
+</footer>
+<script src="personal.js?v=20261028"></script>
+</body>
+</html>
