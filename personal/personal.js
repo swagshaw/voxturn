@@ -31,9 +31,8 @@ function select(i) {
   $("#enrollText").textContent = `· voxturn-personal learned the caller's voice from the first seconds of the call.`;
   const s = data.scan[ex.kind];
   if (s) {
-    const early = (m) => (m.cut || 0) + (m.early || 0);
-    $("#scanNote").textContent = `Selected call. Across all ${s.sessions} calls we replayed, Pipecat with voxturn v1 jumped in ` +
-      `before the caller was done on ${pct(early(s.v1), s.sessions)} of them; with voxturn-personal, on ${pct(early(s.personal), s.sessions)}.`;
+    $("#scanNote").textContent = `Selected call. Across all ${s.sessions} calls we replayed, Pipecat answered within 1 s of the ` +
+      `caller finishing on ${pct(s.v1.ok || 0, s.sessions)} of them with voxturn v1, and on ${pct(s.personal.ok || 0, s.sessions)} with voxturn-personal.`;
   }
   fired = {};
   render(0);
