@@ -35,6 +35,7 @@
   <div class="cta">
     <a class="btn primary" href="#demo">▶ Watch the replay</a>
     <a class="btn" href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector" target="_blank" rel="noopener">Get the model</a>
+    <a class="btn" href="https://huggingface.co/spaces/AustinXiao/voxturn-demo" target="_blank" rel="noopener">Try it on HF Spaces</a>
     <a class="btn" href="../">voxturn v1</a>
   </div>
   <div class="stats">
@@ -211,7 +212,7 @@
   </div>
   <div class="code">
     <div class="tabs" role="tablist">
-      <button class="tab on" data-tab="pipecat">Pipecat</button><button class="tab" data-tab="py">Python</button>
+      <button class="tab on" data-tab="pipecat">Pipecat</button><button class="tab" data-tab="py">Python</button><button class="tab" data-tab="api">Hosted API</button>
       <button class="copy" id="copy">Copy</button>
     </div>
 <pre data-tab="pipecat" class="on"><code>from pipecat_voxturn_personal import VoxTurnPersonalAnalyzer
@@ -228,13 +229,30 @@ model = VoxTurnPersonal.from_pretrained(path)
 enr = model.call_enrollment()                  # once per call
 user = enr.add(chunk, is_speech)               # every chunk, with your VAD's speech flag
 model.predict(last_8s, user, questions=("eot", "target_active"))</code></pre>
+<pre data-tab="api"><code># no GPU: the hosted demo on Hugging Face Spaces (pip install gradio_client)
+from gradio_client import Client, handle_file
+
+client = Client("AustinXiao/voxturn-demo")
+client.predict(handle_file("user_voice.wav"),   # ~10 s of the user, or the call's start
+               handle_file("audio_so_far.wav"), # others may talk
+               False,                           # True while the agent speaks -&gt; barge_in
+               api_name="/personal_decide")
+# {'eot': {...}, 'target_active': {'user': 0.02, 'other': 0.98, 'none': 0.0}, ...}
+
+plot, s = client.predict(handle_file("call_start.wav"), handle_file("turn.wav"), "", 0.85, 0.8,
+                         api_name="/personal_timeline")
+s["reply_personal"], s["reply_v1"]              # when each model would reply</code></pre>
   </div>
+  <p class="fine tb-note">The <a href="https://huggingface.co/spaces/AustinXiao/voxturn-demo" target="_blank" rel="noopener">hosted API</a>
+    takes several seconds per call (a GPU is allocated per call): use it to try voxturn-personal; run the model yourself in a live agent.
+    Arguments and outputs: <a href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector#hosted-api-no-gpu-needed" target="_blank" rel="noopener">model card</a>.</p>
 </section>
 </main>
 
 <footer class="foot">
   <p><b>voxturn-personal</b> (preview) · CC BY-NC 4.0 ·
     <a href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector" target="_blank" rel="noopener">huggingface.co/AustinXiao/voxturn-personal-turn-detector</a> ·
+    <a href="https://huggingface.co/spaces/AustinXiao/voxturn-demo" target="_blank" rel="noopener">hosted demo and API</a> ·
     <a href="../">voxturn v1</a></p>
   <p class="fine">Demo audio: SpokenWOZ and Seamless Interaction (CC BY-NC 4.0).</p>
 </footer>

@@ -32,6 +32,7 @@
   <div class="cta">
     <a class="btn primary" href="#demo">▶ Hear the difference</a>
     <a class="btn" href="https://huggingface.co/AustinXiao/voxturn" target="_blank" rel="noopener">Get the model</a>
+    <a class="btn" href="https://huggingface.co/spaces/AustinXiao/voxturn-demo" target="_blank" rel="noopener">Try it on HF Spaces</a>
     <a class="btn" href="tech_report.pdf" target="_blank" rel="noopener">Read the tech report</a>
   </div>
   <div class="stats">
@@ -185,7 +186,7 @@
   </div>
   <div class="code">
     <div class="tabs" role="tablist">
-      <button class="tab on" data-tab="py">Python</button><button class="tab" data-tab="pipecat">Pipecat</button><button class="tab" data-tab="livekit">LiveKit</button>
+      <button class="tab on" data-tab="py">Python</button><button class="tab" data-tab="pipecat">Pipecat</button><button class="tab" data-tab="livekit">LiveKit</button><button class="tab" data-tab="api">Hosted API</button>
       <button class="copy" id="copy">Copy</button>
     </div>
 <pre data-tab="py" class="on"><code>from huggingface_hub import snapshot_download
@@ -206,14 +207,27 @@ from livekit.plugins import silero
 
 session = AgentSession(vad=silero.VAD.load(min_silence_duration=0.3),
                        turn_handling={"turn_detection": VoxTurnDetector()})</code></pre>
+<pre data-tab="api"><code># no GPU: the hosted demo on Hugging Face Spaces (pip install gradio_client)
+from gradio_client import Client, handle_file
+
+client = Client("AustinXiao/voxturn-demo")
+client.predict(handle_file("turn_so_far.wav"), "English", "", False, api_name="/decide")
+# {'eot': {'yes': 0.97, 'no': 0.03}, 'resume': {...}, 'state4': {...}, 'invalid': {...}}
+
+plot, scores = client.predict(handle_file("turn.wav"), "English", 0.8, api_name="/timeline")
+scores["reply_at"], scores["p_eot"]        # when an agent would reply; P(end of turn) every 100 ms</code></pre>
   </div>
+  <p class="fine tb-note">The <a href="https://huggingface.co/spaces/AustinXiao/voxturn-demo" target="_blank" rel="noopener">hosted API</a>
+    takes a few seconds per call (a GPU is allocated per call): use it to try voxturn; run the model yourself in a live agent.
+    Arguments and outputs: <a href="https://huggingface.co/AustinXiao/voxturn#hosted-api-no-gpu-needed" target="_blank" rel="noopener">model card</a>.</p>
 </section>
 </main>
 
 <footer>
   <p><b>voxturn v1</b> · weights and code under CC BY-NC 4.0 ·
     <a href="https://huggingface.co/AustinXiao/voxturn" target="_blank" rel="noopener">huggingface.co/AustinXiao/voxturn</a> ·
-    <a href="tech_report.pdf" target="_blank" rel="noopener">technical report (PDF)</a></p>
+    <a href="tech_report.pdf" target="_blank" rel="noopener">technical report (PDF)</a> ·
+    <a href="https://huggingface.co/spaces/AustinXiao/voxturn-demo" target="_blank" rel="noopener">hosted demo and API</a></p>
   <p class="fine">Demo audio, words and pause labels: <a href="https://huggingface.co/datasets/livekit/eot-bench-data" target="_blank" rel="noopener">LiveKit eot-bench</a> (CC BY 4.0).
     Baseline numbers: official eot-bench results and the official TurnBench leaderboard. Framework numbers: 150 English eot-bench turns replayed through each framework's VAD and endpointing.</p>
 </footer>
