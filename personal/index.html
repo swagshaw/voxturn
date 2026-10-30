@@ -12,13 +12,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2322d3ee%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a78bfa%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2212%22 fill=%22url(%23g)%22/%3E%3C/svg%3E">
 <link rel="stylesheet" href="../style.css?v=20261015">
-<link rel="stylesheet" href="personal.css?v=20261028">
+<link rel="stylesheet" href="personal.css?v=20261030">
 </head>
 <body>
 <header class="nav">
   <a class="brand" href="../"><span class="dot"></span>voxturn</a>
   <nav>
-    <a href="#demo">Live replay</a><a href="#how">How it works</a><a href="#results">Results</a><a href="#use">Use it</a>
+    <a href="#demo">Live replay</a><a href="#how">How it works</a><a href="#results">Results</a><a href="#bench">Benchmarks</a><a href="#use">Use it</a>
     <a href="../">voxturn v1</a>
     <a class="pill" href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector" target="_blank" rel="noopener">Hugging Face ↗</a>
   </nav>
@@ -130,7 +130,7 @@
 
 <section id="results" class="section">
   <div class="section-head">
-    <p class="eyebrow">Results</p>
+    <p class="eyebrow">Results · someone talks nearby</p>
     <h2>More calls answered <span class="grad">right on time.</span></h2>
     <p class="sub">80 phone calls with someone talking nearby, each replayed through Pipecat and Silero VAD with
       either turn model.</p>
@@ -145,6 +145,63 @@
       </tbody>
     </table>
   </div>
+
+  <div class="bench-grid pgrid">
+    <div class="panel">
+      <h4>False cut-offs at a 300&nbsp;ms budget, with someone else in the audio <small>· lower is better</small></h4>
+      <div id="pairs"></div>
+      <div class="key"><span><i class="sw st"></i>voxturn v1</span><span><i class="sw vox"></i>voxturn-personal</span><span class="dk">Δ vs v1 [95% CI]</span></div>
+    </div>
+    <div class="panel">
+      <h4>Barge-in: should the agent stop talking? <small>· while it speaks</small></h4>
+      <div id="barge"></div>
+      <p class="fine">Real two-party calls (TurnBench dev). The user's real interruptions and backchannels, and a bystander
+        who starts talking, as loud as the user, close by or across the room. Each detector may stop for at most 10% of the
+        user's backchannels. Hardest case: a bystander's real interruption close by (4.5%).</p>
+    </div>
+  </div>
+  <p class="fine tb-note">Cut-offs: the share of the user's pauses where the agent replies although the user goes on, at
+    a 300&nbsp;ms answer-latency budget (eot-bench protocol). The enrollment is ~10&nbsp;s of the user's speech from elsewhere
+    in the same call (phone) or from another meeting of theirs (DiPCo, AMI). Meeting numbers are high for every model: after a
+    finished sentence, the other participants decide whether the floor passes.</p>
+</section>
+
+<section id="bench" class="section">
+  <div class="section-head">
+    <p class="eyebrow">Everything voxturn v1 is tested on</p>
+    <h2>No bystander? <span class="grad">Still ahead of v1.</span></h2>
+    <p class="sub">Every test on the voxturn v1 page, rerun for both models with the same scripts, without an enrollment
+      where the test has none. Hover the chart.</p>
+  </div>
+  <div class="bench-grid">
+    <div class="panel"><h4>eot-bench English: false cut-offs vs latency budget</h4><svg id="curve" class="chart"></svg></div>
+    <div class="panel"><h4>Every language, 300&nbsp;ms budget (open models)</h4><div id="langs" class="langs"></div></div>
+  </div>
+  <div class="panel pipe">
+    <h4>Pipecat + Silero VAD, 150 eot-bench English turns <small>· turns cut off mid-turn</small></h4>
+    <div id="pipe"></div>
+  </div>
+  <div class="rtable vtable">
+    <table>
+      <thead><tr><th>Test</th><th>voxturn v1</th><th>voxturn-personal</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>eot-bench English: cut-offs at 300 ms / latency at 5% cut-offs</td><td>11.5% / 669 ms</td><td><b>10.4% / 563 ms</b></td><td class="up">better</td></tr>
+        <tr><td>eot-bench, 14-language mean cut-offs at 300 ms</td><td>19.9%</td><td><b>17.5%</b></td><td class="up">13 of 14 languages</td></tr>
+        <tr><td>TurnBench dev, end of turn (recall at FPR ≤ 0.1)</td><td>0.930</td><td>0.930</td><td>level</td></tr>
+        <tr><td>TurnBench dev, interruptions (recall at FPR ≤ 0.1, median latency)</td><td>0.960 · 337 ms</td><td>0.951 · 506 ms</td><td>level, answers later</td></tr>
+        <tr><td>Easy-Turn test (Chinese, dialog state)</td><td>88.3%</td><td><b>89.4%</b></td><td class="up">better</td></tr>
+        <tr><td>Non-verbal sounds recognised as not speech (SLR99)</td><td>99.6%</td><td>99.6%</td><td>level</td></tr>
+        <tr><td>TEN, text only: English / Chinese</td><td>80.5% / 94.4%</td><td><b>94.9%</b> / 93.4%</td><td class="up">English better</td></tr>
+        <tr><td>SemanticVAD, text only: end of turn, en / zh</td><td>100% / 99.0%</td><td>99.5% / 98.5%</td><td>level</td></tr>
+        <tr><td>SemanticVAD, text only: interrupt vs backchannel, en / zh</td><td>80.5% / 88.4%</td><td>82.0% / 88.2%</td><td>level</td></tr>
+        <tr><td>One decision on an NVIDIA L40S</td><td><b class="o">8.5 ms</b></td><td>22 ms · 15 ms without an enrollment</td><td class="dn">slower</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="fine tb-note">"Level": no significant difference (text tests paired per sample, McNemar p &gt; 0.05; TurnBench within
+    3 of ~350 events). voxturn-personal is a 2.1B model (Qwen3-ASR-1.7B + ReDimNet-B3) against v1's 0.8B; following an
+    enrolled user is trained on English only. Full tables on the
+    <a href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector" target="_blank" rel="noopener">model card</a>.</p>
 </section>
 
 <section id="use" class="section">
@@ -181,6 +238,6 @@ model.predict(last_8s, user, questions=("eot", "target_active"))</code></pre>
     <a href="../">voxturn v1</a></p>
   <p class="fine">Demo audio: SpokenWOZ and Seamless Interaction (CC BY-NC 4.0).</p>
 </footer>
-<script src="personal.js?v=20261028"></script>
+<script src="personal.js?v=20261030"></script>
 </body>
 </html>

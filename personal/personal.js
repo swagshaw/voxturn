@@ -212,6 +212,107 @@ $("#copy").onclick = async () => {
 // for screenshots and the GIF (release/personal/demo/make_gif.js): show session i at time t, without audio
 window.__show = (i, t) => { if (ex !== data.examples[i]) select(i); fired = { V1: true, PE: true }; render(t); };
 
+// ------------------------------------------------------------------ results (numbers from the model card)
+const PAIRS = [
+  ["Phone calls · SpokenWOZ users, 110 calls", [
+    ["no bystander", 15.8, 15.0, "-0.8", "[-2.3, 0.3]"],
+    ["bystander across the room, 0 dB", 47.3, 20.5, "-26.8", "[-31.4, -22.7]"],
+    ["bystander close by, 0 dB", 51.4, 20.2, "-31.2", "[-35.0, -26.9]"],
+    ["another phone caller, 0 dB", 41.9, 19.6, "-22.3", "[-28.3, -19.3]"]]],
+  ["Dinner parties · DiPCo, a corpus never used in training", [
+    ["user's close-talk microphone", 50.3, 40.1, "-10.2", "[-16.6, -4.9]"],
+    ["far-field device, everyone across the room", 61.7, 46.0, "-15.7", "[-18.6, -8.1]"]]],
+  ["Meetings · AMI test, 16 users never seen in training", [
+    ["headset + a conversation across the room, 0 dB", 73.6, 59.4, "-14.2", "[-20.2, -10.0]"],
+    ["the same at 5 dB", 72.3, 55.4, "-16.9", "[-20.2, -13.3]"]]],
+];
+const BARGE = [["VAD alone", 91, "1.4 s", 50], ["voxturn v1", 54, "0.9 s", 45], ["voxturn-personal", 90, "0.8 s", 2.2]];
+const PIPE = [["Smart Turn v3 (Pipecat default)", "st", 41.3], ["voxturn v1", "v1", 12.7], ["voxturn-personal", "pe", 11.3]];
+const minus = (x) => x.replace(/-/g, "−");
+
+function results() {
+  const max = 80, w = (v) => `${(100 * v) / max}%`;
+  $("#pairs").innerHTML = PAIRS.map(([title, rows]) => `<div class="pgroup"><h5>${title}</h5>` + rows.map(([l, a, b, d, ci]) =>
+    `<div class="prow"><span class="pl">${l}</span><span class="pbars"><span class="pb v1"><i style="width:${w(a)}"></i><em>${a.toFixed(1)}%</em></span>` +
+    `<span class="pb pe"><i style="width:${w(b)}"></i><em>${b.toFixed(1)}%</em></span></span>` +
+    `<span class="pd${ci.includes(", 0.3") ? " flat" : ""}">${minus(d)}<small>${minus(ci)}</small></span></div>`).join("") + `</div>`).join("");
+  $("#barge").innerHTML = `<div class="bhead"><span></span><span>stops for <b>your</b> interruptions ↑ (median delay)</span><span>stops for a <b>bystander</b> ↓</span></div>` +
+    BARGE.map(([n, u, d, by]) => `<div class="brow${n === "voxturn-personal" ? " me" : ""}"><span class="n">${n}</span>` +
+      `<span class="bcell"><span class="t"><i style="width:${u}%"></i></span><b>${u}% <small>${d}</small></b></span>` +
+      `<span class="bcell bad"><span class="t"><i style="width:${by}%"></i></span><b>${by}%</b></span></div>`).join("");
+  $("#pipe").innerHTML = PIPE.map(([n, k, v]) => `<div class="prow"><span class="pl${k === "pe" ? " me" : ""}">${n}</span>` +
+    `<span class="pb"><i class="${k}" style="width:${(100 * v) / 50}%"></i></span><span class="pv${k === "pe" ? " me" : ""}">${v}%</span></div>`).join("") +
+    `<p class="fine">No bystander; voxturn-personal captures its enrollment from the turn itself. Reply after the final silence starts, median: 0.30 s for both voxturn models (default thresholds 0.8 / 0.85).</p>`;
+}
+
+// ------------------------------------------------------------------ eot-bench (bench.json, release/personal/demo/make_bench.py)
+const BCOL = { "voxturn-personal": C.pe, "voxturn v1": C.v1, "LiveKit v1": "#e5e7eb", Baton: "#facc15", "Deepgram Flux": "#c4b5fd",
+  "LiveKit v1-mini": "#34d399", "Smart Turn v3.2": "#64748b", ultraVAD: "#475569" };
+const ME = "voxturn-personal";
+
+function curveChart(b) {
+  const svg = $("#curve"), W = svg.clientWidth || 600, H = svg.clientHeight || 320;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const L = 40, R = 14, T = 12, B = 30, x0 = 200, x1 = 1000, y1 = 40;
+  const X = (ms) => L + ((ms - x0) / (x1 - x0)) * (W - L - R), Y = (v) => T + (1 - Math.min(v, y1) / y1) * (H - T - B);
+  const rank = (s) => (s.name === ME ? 2 : s.name === "voxturn v1" ? 1 : 0);
+  const sys = [...b.systems].sort((a, c) => rank(a) - rank(c));
+  let h = `<g class="grid">`;
+  for (let v = 0; v <= y1; v += 10) h += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L - 8}" y="${Y(v) + 4}" text-anchor="end">${v}%</text>`;
+  for (let ms = 200; ms <= 1000; ms += 200) h += `<text x="${X(ms)}" y="${H - 10}" text-anchor="${ms === 1000 ? "end" : ms === 200 ? "start" : "middle"}">${ms} ms</text>`;
+  h += `<line x1="${X(300)}" x2="${X(300)}" y1="${T}" y2="${H - B}" style="stroke:rgba(255,255,255,.18);stroke-dasharray:3 3"/></g>`;
+  sys.forEach((s) => {
+    const pts = b.budgets_ms.map((ms, k) => [ms, s.curve[k]]).filter(([ms, v]) => v !== null && ms <= x1);
+    const d = pts.map(([ms, v], k) => `${k ? "L" : "M"}${X(ms).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+    const r = rank(s);
+    h += `<path d="${d}" fill="none" stroke="${BCOL[s.name]}" stroke-width="${r === 2 ? 3.2 : r ? 2.4 : 1.4}" ${s.open ? "" : 'stroke-dasharray="5 4"'} opacity="${r ? 1 : 0.6}"/>`;
+  });
+  h += `<g id="hover" style="display:none"><line id="hl" y1="${T}" y2="${H - B}" stroke="rgba(255,255,255,.4)"/><rect id="hb" rx="8" fill="#0b0f17" stroke="#1c2333"/><g id="ht"></g></g>`;
+  sys.slice().reverse().forEach((s, k) => {
+    const lx = W - R - 150, ly = T + 10 + k * 15;
+    h += `<line x1="${lx}" x2="${lx + 18}" y1="${ly}" y2="${ly}" stroke="${BCOL[s.name]}" stroke-width="${rank(s) ? 3 : 1.6}" ${s.open ? "" : 'stroke-dasharray="4 3"'}/><text x="${lx + 24}" y="${ly + 4}">${s.name}${s.open ? "" : " (closed)"}</text>`;
+  });
+  svg.innerHTML = h;
+  svg.onmousemove = (e) => {
+    const r = svg.getBoundingClientRect(), mx = ((e.clientX - r.left) / r.width) * W;
+    const ms = Math.round((x0 + ((mx - L) / (W - L - R)) * (x1 - x0)) / 20) * 20;
+    const k = b.budgets_ms.indexOf(ms);
+    if (k < 0) return svg.onmouseleave();
+    $("#hover").style.display = "";
+    $("#hl").setAttribute("x1", X(ms)); $("#hl").setAttribute("x2", X(ms));
+    const rows = b.systems.filter((s) => s.curve[k] !== null).sort((a, c) => a.curve[k] - c.curve[k]);
+    const bx = X(ms) > W / 2 ? X(ms) - 200 : X(ms) + 10;
+    $("#hb").setAttribute("x", bx); $("#hb").setAttribute("y", T + 4); $("#hb").setAttribute("width", 190); $("#hb").setAttribute("height", 22 + rows.length * 15);
+    $("#ht").innerHTML = `<text class="tip" x="${bx + 10}" y="${T + 20}">at ${ms} ms</text>` + rows.map((s, j) =>
+      `<text class="tip" x="${bx + 10}" y="${T + 36 + j * 15}" style="fill:${BCOL[s.name]}">${s.name}</text><text class="tip" x="${bx + 180}" y="${T + 36 + j * 15}" text-anchor="end">${s.curve[k].toFixed(1)}%</text>`).join("");
+  };
+  svg.onmouseleave = () => { const hv = $("#hover"); if (hv) hv.style.display = "none"; };
+}
+
+function langChart(b) {
+  const open = [ME, "voxturn v1", "LiveKit v1-mini", "Smart Turn v3.2", "ultraVAD"];
+  const sys = open.map((n) => b.systems.find((s) => s.name === n));
+  const me = sys[0], max = 56;
+  const langs = [...b.langs].sort((a, c) => me.per_lang[a] - me.per_lang[c]);
+  const mean = (s) => b.langs.reduce((a, l) => a + s.per_lang[l], 0) / b.langs.length;
+  const row = (code, vals) => {
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    return `<div class="lrow l2"><span class="code">${code}</span><span class="track"><i style="left:${(100 * lo) / max}%;width:${(100 * (hi - lo)) / max}%;background:rgba(255,255,255,.07)"></i>` +
+      sys.map((s, j) => `<span class="d" style="left:${(100 * vals[j]) / max}%;background:${BCOL[s.name]};${j === 0 ? "box-shadow:0 0 10px " + C.pe + ";z-index:3" : j === 1 ? "z-index:2" : "opacity:.7"}" title="${s.name}: ${vals[j].toFixed(1)}%"></span>`).join("") +
+      `</span><span class="v o">${vals[1].toFixed(1)}</span><span class="v">${vals[0].toFixed(1)}</span></div>`;
+  };
+  $("#langs").innerHTML = `<div class="lrow l2"><span></span><span></span><span class="v o">v1</span><span class="v">pers.</span></div>` +
+    langs.map((l) => row(l, sys.map((s) => s.per_lang[l]))).join("") +
+    `<div style="border-top:1px solid #1c2333;margin:4px 0"></div>` + row("mean", sys.map(mean)) +
+    `<div class="key">${sys.map((s) => `<span><i style="background:${BCOL[s.name]}"></i>${s.name}</span>`).join("")}</div>`;
+}
+
+results();
+fetch("bench.json").then((r) => r.json()).then((b) => {
+  curveChart(b); langChart(b);
+  window.addEventListener("resize", () => curveChart(b));
+});
+
 fetch("examples.json").then((r) => r.json()).then((d) => {
   data = d;
   buildChips();
