@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>voxturn-personal — listens to you, not the room</title>
-<meta name="description" content="voxturn-personal: turn detection that follows your voice, not the room. Live replay in Pipecat against voxturn v1.">
+<title>voxturn-personal — a speaker-aware turn detector that listens to you, not the room</title>
+<meta name="description" content="voxturn-personal: a speaker-aware turn detector for voice agents. End-of-turn and barge-in detection that follows your voice, not the room. Live replay in Pipecat against voxturn v1.">
 <meta property="og:title" content="voxturn-personal — listens to you, not the room">
 <meta property="og:description" content="Same framework, same VAD, different turn model: voxturn-personal waits for the user, not for the people around them.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +20,7 @@
   <nav>
     <a href="#demo">Live replay</a><a href="#how">How it works</a><a href="#results">Results</a><a href="#use">Use it</a>
     <a href="../">voxturn v1</a>
-    <a class="pill" href="https://huggingface.co/AustinXiao/voxturn-personal" target="_blank" rel="noopener">Hugging Face ↗</a>
+    <a class="pill" href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector" target="_blank" rel="noopener">Hugging Face ↗</a>
   </nav>
 </header>
 
@@ -34,7 +34,7 @@
     call and decides only on <em>your</em> turn.</p>
   <div class="cta">
     <a class="btn primary" href="#demo">▶ Watch the replay</a>
-    <a class="btn" href="https://huggingface.co/AustinXiao/voxturn-personal" target="_blank" rel="noopener">Get the model</a>
+    <a class="btn" href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector" target="_blank" rel="noopener">Get the model</a>
     <a class="btn" href="../">voxturn v1</a>
   </div>
   <div class="stats">
@@ -164,7 +164,7 @@ from pipecat.turns.user_turn_strategies import UserTurnStrategies
 analyzer = VoxTurnPersonalAnalyzer()     # captures the user's voice from the call's start
 strategies = UserTurnStrategies(stop=[TurnAnalyzerUserTurnStopStrategy(turn_analyzer=analyzer)])</code></pre>
 <pre data-tab="py"><code>from huggingface_hub import snapshot_download
-import sys; path = snapshot_download("AustinXiao/voxturn-personal"); sys.path.insert(0, path)
+import sys; path = snapshot_download("AustinXiao/voxturn-personal-turn-detector"); sys.path.insert(0, path)
 from voxturn_personal import VoxTurnPersonal
 
 model = VoxTurnPersonal.from_pretrained(path)
@@ -177,7 +177,7 @@ model.predict(last_8s, user, questions=("eot", "target_active"))</code></pre>
 
 <footer class="foot">
   <p><b>voxturn-personal</b> (preview) · CC BY-NC 4.0 ·
-    <a href="https://huggingface.co/AustinXiao/voxturn-personal" target="_blank" rel="noopener">huggingface.co/AustinXiao/voxturn-personal</a> ·
+    <a href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector" target="_blank" rel="noopener">huggingface.co/AustinXiao/voxturn-personal-turn-detector</a> ·
     <a href="../">voxturn v1</a></p>
   <p class="fine">Demo audio: SpokenWOZ and Seamless Interaction (CC BY-NC 4.0).</p>
 </footer>

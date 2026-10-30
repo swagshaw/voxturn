@@ -48,7 +48,7 @@ decides only on the user's turn.
 <br><sub>Same framework, same VAD, a bystander talking nearby. voxturn v1 hears everyone; voxturn-personal follows the user it enrolled at the start of the call.</sub>
 </div>
 
-**[▶ Live replay](https://swagshaw.github.io/voxturn/personal/)** · **[Model (preview)](https://huggingface.co/AustinXiao/voxturn-personal)**
+**[▶ Live replay](https://swagshaw.github.io/voxturn/personal/)** · **[Model (preview)](https://huggingface.co/AustinXiao/voxturn-personal-turn-detector)**
 · English, one user per session, Pipecat plugin; technical report and benchmark with the full release.
 
 ## Highlights
