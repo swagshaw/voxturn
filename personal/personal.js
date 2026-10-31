@@ -1,4 +1,4 @@
-// voxturn-personal page: replays precomputed Pipecat sessions (examples.json, release/personal/demo/make_replay.py).
+// ShadowMe page: replays precomputed Pipecat sessions (examples.json, release/personal/demo/make_replay.py).
 "use strict";
 
 const C = { pe: "#22d3ee", v1: "#fb923c", user: "#e8ecf4", bys: "#f472b6", pu: "#a78bfa", vad: "250,204,21",
@@ -28,11 +28,11 @@ function select(i) {
   document.querySelectorAll(".chip").forEach((c, j) => c.classList.toggle("on", j === i));
   setTrack(track, true);
   opening.src = `audio/${ex.id}.opening.mp3`;
-  $("#enrollText").textContent = `· voxturn-personal learned the caller's voice from the first seconds of the call.`;
+  $("#enrollText").textContent = `· ShadowMe learned the caller's voice from the first seconds of the call.`;
   const s = data.scan[ex.kind];
   if (s) {
     $("#scanNote").textContent = `Selected call. Across all ${s.sessions} calls we replayed, Pipecat answered within 1 s of the ` +
-      `caller finishing on ${pct(s.v1.ok || 0, s.sessions)} of them with voxturn v1, and on ${pct(s.personal.ok || 0, s.sessions)} with voxturn-personal.`;
+      `caller finishing on ${pct(s.v1.ok || 0, s.sessions)} of them with voxturn v1, and on ${pct(s.personal.ok || 0, s.sessions)} with ShadowMe.`;
   }
   fired = {};
   render(0);
@@ -173,7 +173,7 @@ function drawTimeline(t) {
   curve(ex.p_v1, C.v1, 1.8);
   curve(ex.p_personal, C.pe, 2.6);
   // reply markers, once the playhead reaches them
-  [["v1", C.v1, "v1 replies"], ["personal", C.pe, "voxturn-personal replies"]].forEach(([k, col, label], j) => {
+  [["v1", C.v1, "v1 replies"], ["personal", C.pe, "ShadowMe replies"]].forEach(([k, col, label], j) => {
     const r = ex.reply[k];
     if (r === null || r === undefined || t < r) return;
     g.strokeStyle = col; g.lineWidth = 2; g.beginPath(); g.moveTo(x(r), T); g.lineTo(x(r), pBot); g.stroke();
@@ -226,8 +226,8 @@ const PAIRS = [
     ["headset + a conversation across the room, 0 dB", 73.6, 59.4, "-14.2", "[-20.2, -10.0]"],
     ["the same at 5 dB", 72.3, 55.4, "-16.9", "[-20.2, -13.3]"]]],
 ];
-const BARGE = [["VAD alone", 91, "1.4 s", 50], ["voxturn v1", 54, "0.9 s", 45], ["voxturn-personal", 90, "0.8 s", 2.2]];
-const PIPE = [["Smart Turn v3 (Pipecat default)", "st", 41.3], ["voxturn v1", "v1", 12.7], ["voxturn-personal", "pe", 11.3]];
+const BARGE = [["VAD alone", 91, "1.4 s", 50], ["voxturn v1", 54, "0.9 s", 45], ["ShadowMe", 90, "0.8 s", 2.2]];
+const PIPE = [["Smart Turn v3 (Pipecat default)", "st", 41.3], ["voxturn v1", "v1", 12.7], ["ShadowMe", "pe", 11.3]];
 const minus = (x) => x.replace(/-/g, "−");
 
 function results() {
@@ -237,18 +237,18 @@ function results() {
     `<span class="pb pe"><i style="width:${w(b)}"></i><em>${b.toFixed(1)}%</em></span></span>` +
     `<span class="pd${ci.includes(", 0.3") ? " flat" : ""}">${minus(d)}<small>${minus(ci)}</small></span></div>`).join("") + `</div>`).join("");
   $("#barge").innerHTML = `<div class="bhead"><span></span><span>stops for <b>your</b> interruptions ↑ (median delay)</span><span>stops for a <b>bystander</b> ↓</span></div>` +
-    BARGE.map(([n, u, d, by]) => `<div class="brow${n === "voxturn-personal" ? " me" : ""}"><span class="n">${n}</span>` +
+    BARGE.map(([n, u, d, by]) => `<div class="brow${n === "ShadowMe" ? " me" : ""}"><span class="n">${n}</span>` +
       `<span class="bcell"><span class="t"><i style="width:${u}%"></i></span><b>${u}% <small>${d}</small></b></span>` +
       `<span class="bcell bad"><span class="t"><i style="width:${by}%"></i></span><b>${by}%</b></span></div>`).join("");
   $("#pipe").innerHTML = PIPE.map(([n, k, v]) => `<div class="prow"><span class="pl${k === "pe" ? " me" : ""}">${n}</span>` +
     `<span class="pb"><i class="${k}" style="width:${(100 * v) / 50}%"></i></span><span class="pv${k === "pe" ? " me" : ""}">${v}%</span></div>`).join("") +
-    `<p class="fine">No bystander; voxturn-personal captures its enrollment from the turn itself. Reply after the final silence starts, median: 0.30 s for both voxturn models (default thresholds 0.8 / 0.85).</p>`;
+    `<p class="fine">No bystander; ShadowMe captures its enrollment from the turn itself. Reply after the final silence starts, median: 0.30 s for both voxturn models (default thresholds 0.8 / 0.85).</p>`;
 }
 
 // ------------------------------------------------------------------ eot-bench (bench.json, release/personal/demo/make_bench.py)
-const BCOL = { "voxturn-personal": C.pe, "voxturn v1": C.v1, "LiveKit v1": "#e5e7eb", Baton: "#facc15", "Deepgram Flux": "#c4b5fd",
+const BCOL = { "ShadowMe": C.pe, "voxturn v1": C.v1, "LiveKit v1": "#e5e7eb", Baton: "#facc15", "Deepgram Flux": "#c4b5fd",
   "LiveKit v1-mini": "#34d399", "Smart Turn v3.2": "#64748b", ultraVAD: "#475569" };
-const ME = "voxturn-personal";
+const ME = "ShadowMe";
 
 function curveChart(b) {
   const svg = $("#curve"), W = svg.clientWidth || 600, H = svg.clientHeight || 320;

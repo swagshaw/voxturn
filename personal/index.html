@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>voxturn-personal — a speaker-aware turn detector that listens to you, not the room</title>
-<meta name="description" content="voxturn-personal: a speaker-aware turn detector for voice agents. End-of-turn and barge-in detection that follows your voice, not the room. Live replay in Pipecat against voxturn v1.">
-<meta property="og:title" content="voxturn-personal — listens to you, not the room">
-<meta property="og:description" content="Same framework, same VAD, different turn model: voxturn-personal waits for the user, not for the people around them.">
+<title>ShadowMe — turn-taking that listens only to you, not the room</title>
+<meta name="description" content="ShadowMe: a speaker-aware turn detector for voice agents. End-of-turn and barge-in detection that follows your voice, not the room. Live replay in Pipecat against voxturn v1.">
+<meta property="og:title" content="ShadowMe — listens to you, not the room">
+<meta property="og:description" content="Same framework, same VAD, different turn model: ShadowMe waits for the user, not for the people around them.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -27,15 +27,16 @@
 <main id="top">
 <section class="hero">
   <div class="glow"></div>
-  <p class="eyebrow">voxturn-personal · preview</p>
+  <p class="eyebrow">ShadowMe · preview</p>
   <h1>Listens to <span class="grad">you,</span><br>not the room.</h1>
   <p class="lede">Turn detectors hear whoever is talking. When someone nearby keeps talking, the agent waits for
-    them — or answers the moment <em>they</em> stop. voxturn-personal learns your voice from the first seconds of the
+    them — or answers the moment <em>they</em> stop. ShadowMe learns your voice from the first seconds of the
     call and decides only on <em>your</em> turn.</p>
   <div class="cta">
     <a class="btn primary" href="#demo">▶ Watch the replay</a>
     <a class="btn" href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector" target="_blank" rel="noopener">Get the model</a>
     <a class="btn" href="https://huggingface.co/spaces/AustinXiao/voxturn-demo" target="_blank" rel="noopener">Try it on HF Spaces</a>
+    <a class="btn" href="../shadowme_tech_report.pdf" target="_blank" rel="noopener">Read the tech report</a>
     <a class="btn" href="../">voxturn v1</a>
   </div>
   <div class="stats">
@@ -51,7 +52,7 @@
     <p class="eyebrow">Live replay</p>
     <h2>Same framework. Same VAD. <span class="grad">Different turn model.</span></h2>
     <p class="sub">A caller talks to an agent while someone else talks nearby. The same call streams through Pipecat's
-      Silero VAD twice — once with voxturn v1, once with voxturn-personal. Press play and watch who waits for the caller.</p>
+      Silero VAD twice — once with voxturn v1, once with ShadowMe. Press play and watch who waits for the caller.</p>
   </div>
 
   <div class="chips" id="chips"></div>
@@ -68,7 +69,7 @@
         <span><i class="sw user"></i>caller</span>
         <span><i class="sw bys"></i>bystander</span>
         <span><i class="sw vad"></i>Silero VAD hears speech</span>
-        <span><i class="sw vox"></i>voxturn-personal P(done)</span>
+        <span><i class="sw vox"></i>ShadowMe P(done)</span>
         <span><i class="sw st"></i>voxturn v1 P(done)</span>
         <span><i class="sw pu"></i>P(caller is speaking)</span>
         <span><i class="sw hold"></i>caller pauses</span>
@@ -93,7 +94,7 @@
         <div class="lane-status" id="statusV1">listening…</div>
       </div>
       <div class="lane" id="lanePE">
-        <div class="lane-name"><i class="sw vox"></i>Pipecat + Silero VAD + voxturn-personal</div>
+        <div class="lane-name"><i class="sw vox"></i>Pipecat + Silero VAD + ShadowMe</div>
         <div class="lane-status" id="statusPE">listening…</div>
       </div>
     </div>
@@ -138,7 +139,7 @@
   </div>
   <div class="rtable">
     <table>
-      <thead><tr><th>What the agent did</th><th>voxturn v1</th><th>voxturn-personal</th></tr></thead>
+      <thead><tr><th>What the agent did</th><th>voxturn v1</th><th>ShadowMe</th></tr></thead>
       <tbody>
         <tr><td>Answered within 1 s of the caller finishing</td><td>35%</td><td><b>54%</b></td></tr>
         <tr><td>Jumped in before the caller was done</td><td>35%</td><td><b>33%</b></td></tr>
@@ -151,7 +152,7 @@
     <div class="panel">
       <h4>False cut-offs at a 300&nbsp;ms budget, with someone else in the audio <small>· lower is better</small></h4>
       <div id="pairs"></div>
-      <div class="key"><span><i class="sw st"></i>voxturn v1</span><span><i class="sw vox"></i>voxturn-personal</span><span class="dk">Δ vs v1 [95% CI]</span></div>
+      <div class="key"><span><i class="sw st"></i>voxturn v1</span><span><i class="sw vox"></i>ShadowMe</span><span class="dk">Δ vs v1 [95% CI]</span></div>
     </div>
     <div class="panel">
       <h4>Barge-in: should the agent stop talking? <small>· while it speaks</small></h4>
@@ -184,7 +185,7 @@
   </div>
   <div class="rtable vtable">
     <table>
-      <thead><tr><th>Test</th><th>voxturn v1</th><th>voxturn-personal</th><th></th></tr></thead>
+      <thead><tr><th>Test</th><th>voxturn v1</th><th>ShadowMe</th><th></th></tr></thead>
       <tbody>
         <tr><td>eot-bench English: cut-offs at 300 ms / latency at 5% cut-offs</td><td>11.5% / 669 ms</td><td><b>10.4% / 563 ms</b></td><td class="up">better</td></tr>
         <tr><td>eot-bench, 14-language mean cut-offs at 300 ms</td><td>19.9%</td><td><b>17.5%</b></td><td class="up">13 of 14 languages</td></tr>
@@ -200,7 +201,7 @@
     </table>
   </div>
   <p class="fine tb-note">"Level": no significant difference (text tests paired per sample, McNemar p &gt; 0.05; TurnBench within
-    3 of ~350 events). voxturn-personal is a 2.1B model (Qwen3-ASR-1.7B + ReDimNet-B3) against v1's 0.8B; following an
+    3 of ~350 events). ShadowMe is a 2.1B model (Qwen3-ASR-1.7B + ReDimNet-B3) against v1's 0.8B; following an
     enrolled user is trained on English only. Full tables on the
     <a href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector" target="_blank" rel="noopener">model card</a>.</p>
 </section>
@@ -244,13 +245,13 @@ plot, s = client.predict(handle_file("call_start.wav"), handle_file("turn.wav"),
 s["reply_personal"], s["reply_v1"]              # when each model would reply</code></pre>
   </div>
   <p class="fine tb-note">The <a href="https://huggingface.co/spaces/AustinXiao/voxturn-demo" target="_blank" rel="noopener">hosted API</a>
-    takes several seconds per call (a GPU is allocated per call): use it to try voxturn-personal; run the model yourself in a live agent.
+    takes several seconds per call (a GPU is allocated per call): use it to try ShadowMe; run the model yourself in a live agent.
     Arguments and outputs: <a href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector#hosted-api-no-gpu-needed" target="_blank" rel="noopener">model card</a>.</p>
 </section>
 </main>
 
 <footer class="foot">
-  <p><b>voxturn-personal</b> (preview) · CC BY-NC 4.0 ·
+  <p><b>ShadowMe</b> (preview) · CC BY-NC 4.0 ·
     <a href="https://huggingface.co/AustinXiao/voxturn-personal-turn-detector" target="_blank" rel="noopener">huggingface.co/AustinXiao/voxturn-personal-turn-detector</a> ·
     <a href="https://huggingface.co/spaces/AustinXiao/voxturn-demo" target="_blank" rel="noopener">hosted demo and API</a> ·
     <a href="../">voxturn v1</a></p>
